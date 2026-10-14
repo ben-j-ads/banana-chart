@@ -8,127 +8,273 @@
     :root {
       --bg: #121317;
       --panel: #1b1d24;
+      --panel-2: #14161c;
+      --line: #2a2e39;
       --text: #e9e9ec;
       --muted: #9a9ca6;
-      --banana: #ffe135;   /* accent */
-      --bar: #4a5263;      /* ordinary bars */
-      --brand: #5cd65c;    /* brand overlay */
+      --banana: #ffe135;
+      --banana-soft: rgba(255, 225, 53, 0.15);
+      --bar: #4a5263;
+      --bar-hover: #6b7488;
+      --brand: #5cd65c;
     }
     * { box-sizing: border-box; }
     body {
       margin: 0;
-      padding: 16px;
-      background: var(--bg);
+      padding: 20px 16px 48px;
+      background:
+        radial-gradient(1200px 500px at 50% -200px, rgba(255, 225, 53, 0.08), transparent),
+        var(--bg);
       color: var(--text);
-      font-family: system-ui, -apple-system, sans-serif;
+      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+      line-height: 1.5;
     }
-    h1 { color: var(--banana); margin: 0 0 16px; font-size: 1.6rem; }
+    .wrap { max-width: 760px; margin: 0 auto; }
+    h1 { color: var(--banana); margin: 0; font-size: 2rem; letter-spacing: -0.02em; }
+    h2 { font-size: 1.1rem; margin: 0 0 12px; }
+    .subtitle { color: var(--muted); margin: 4px 0 20px; }
     .panel {
       background: var(--panel);
-      border-radius: 10px;
-      padding: 16px;
-      max-width: 720px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 18px;
       margin-bottom: 16px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
     }
-    svg { width: 100%; height: auto; display: block; }
-    .bar { fill: var(--bar); }
-    .bar-zero { fill: var(--banana); }
-    .axis-label { fill: var(--muted); font-size: 12px; text-anchor: middle; }
-    .brand-line { fill: none; stroke: var(--brand); stroke-width: 2.5; stroke-linejoin: round; }
-    .brand-dot { fill: var(--brand); }
+    .hidden { display: none !important; }
 
-    .control { display: block; margin-bottom: 14px; }
-    .control-head { display: flex; justify-content: space-between; color: var(--muted); font-size: 0.9rem; margin-bottom: 4px; }
-    .control-head output { color: var(--text); font-variant-numeric: tabular-nums; }
-    input[type="range"] { width: 100%; accent-color: var(--banana); }
-    .presets { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+    /* Chart */
+    #hover {
+      display: block;
+      min-height: 1.5em;
+      color: var(--text);
+      font-size: 0.95rem;
+      margin-bottom: 8px;
+    }
+    #hover b { color: var(--banana); font-weight: 600; }
+    svg { width: 100%; height: auto; display: block; touch-action: none; }
+    .bar {
+      fill: var(--bar);
+      transition: y 0.35s ease, height 0.35s ease, fill 0.15s ease;
+    }
+    .bar:hover { fill: var(--bar-hover); }
+    .bar-zero { fill: var(--banana); filter: drop-shadow(0 0 8px rgba(255, 225, 53, 0.35)); }
+    .bar-zero:hover { fill: #fff07a; }
+    .axis-label { fill: var(--muted); font-size: 12px; text-anchor: middle; }
+    .brand-line { fill: none; stroke: var(--brand); stroke-width: 2.5; stroke-linejoin: round; transition: all 0.35s ease; }
+    .brand-dot { fill: var(--brand); }
+    .legend { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 10px; color: var(--muted); font-size: 0.85rem; }
+    .sw { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+    .sw-zero { background: var(--banana); }
+    .sw-bar { background: var(--bar); }
+    .sw-brand { background: var(--brand); }
+
+    /* Presets */
+    .presets { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 18px; }
     button {
       background: transparent;
       color: var(--text);
       border: 1px solid #3a3e4a;
-      border-radius: 6px;
-      padding: 6px 12px;
+      border-radius: 999px;
+      padding: 7px 14px;
       cursor: pointer;
       font: inherit;
+      font-size: 0.92rem;
+      transition: all 0.15s ease;
     }
     button:hover { border-color: var(--banana); color: var(--banana); }
-    .toggle { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; cursor: pointer; }
-    .toggle input { accent-color: var(--brand); width: 18px; height: 18px; }
-    .hidden { display: none; }
+    button.active { background: var(--banana); border-color: var(--banana); color: #111; font-weight: 600; }
+    button:focus-visible, input:focus-visible, summary:focus-visible { outline: 2px solid var(--banana); outline-offset: 2px; }
 
-    .readouts { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
-    .stat { background: var(--bg); border-radius: 8px; padding: 12px; }
-    .stat-label { color: var(--muted); font-size: 0.8rem; margin-bottom: 4px; }
-    .stat-value { font-size: 1.4rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+    /* Controls */
+    .control { display: block; margin-bottom: 16px; }
+    .control-head { display: flex; justify-content: space-between; align-items: baseline; color: var(--muted); font-size: 0.92rem; margin-bottom: 6px; }
+    .control-head output { color: var(--text); font-weight: 600; font-variant-numeric: tabular-nums; font-size: 1rem; }
+    input[type="range"] { width: 100%; accent-color: var(--banana); margin: 0; }
+    .toggle { display: flex; align-items: center; gap: 10px; margin: 4px 0 14px; cursor: pointer; }
+    .toggle input { accent-color: var(--brand); width: 18px; height: 18px; }
+
+    details.explain { margin: -6px 0 16px; color: var(--muted); font-size: 0.88rem; }
+    details.explain summary { cursor: pointer; color: var(--banana); list-style: none; display: inline-block; }
+    details.explain summary::-webkit-details-marker { display: none; }
+    details.explain summary::before { content: "ⓘ "; }
+    details.explain p { margin: 6px 0 0; padding: 10px 12px; background: var(--panel-2); border-radius: 8px; }
+
+    .plain {
+      background: var(--panel-2);
+      border-left: 3px solid var(--banana);
+      border-radius: 8px;
+      padding: 12px 14px;
+      font-size: 0.97rem;
+      margin-bottom: 18px;
+    }
+    .plain b { color: var(--banana); font-weight: 600; }
+
+    /* Readouts */
+    .readouts { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
+    .stat { background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; padding: 14px; }
+    .stat-label { color: var(--muted); font-size: 0.82rem; }
+    .stat-value { font-size: 1.7rem; font-weight: 700; font-variant-numeric: tabular-nums; margin: 2px 0 4px; }
     .stat-value.accent { color: var(--banana); }
     .stat-value.brand { color: var(--brand); }
-    .note { color: var(--muted); font-size: 0.85rem; margin: 12px 0 0; }
+    .stat-help { color: var(--muted); font-size: 0.78rem; line-height: 1.4; }
+
+    /* Learn section */
+    details.learn { border-top: 1px solid var(--line); padding: 12px 0; }
+    details.learn:first-of-type { border-top: 0; padding-top: 0; }
+    details.learn summary { cursor: pointer; font-weight: 600; color: var(--text); }
+    details.learn summary:hover { color: var(--banana); }
+    details.learn .body { color: var(--muted); font-size: 0.95rem; margin-top: 10px; }
+    details.learn .body p { margin: 0 0 10px; }
+    .formula {
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px;
+      color: var(--text);
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.9rem;
+      overflow-x: auto;
+      white-space: pre-wrap;
+    }
+    table.steps { width: 100%; border-collapse: collapse; font-size: 0.9rem; font-variant-numeric: tabular-nums; margin: 8px 0; }
+    table.steps th, table.steps td { text-align: right; padding: 6px 8px; border-bottom: 1px solid var(--line); }
+    table.steps th { color: var(--muted); font-weight: 500; }
+    table.steps td:first-child, table.steps th:first-child { text-align: left; }
+    .glossary dt { color: var(--banana); font-weight: 600; margin-top: 8px; }
+    .glossary dd { margin: 2px 0 0 0; }
+
+    @media (max-width: 480px) {
+      h1 { font-size: 1.6rem; }
+      .panel { padding: 14px; }
+      .stat-value { font-size: 1.4rem; }
+    }
   </style>
 </head>
 <body>
-  <h1>The Banana Chart</h1>
+  <div class="wrap">
+    <h1>The Banana Chart</h1>
+    <p class="subtitle">How often do people buy a category? A negative binomial model of purchase frequency.</p>
 
-  <div class="panel">
-    <svg id="chart" role="img" aria-label="Distribution of purchases per buyer"></svg>
-    <p class="note">
-      Bars: share of buyers making k purchases (k = 0 in yellow).
-      <span id="brand-legend" class="hidden" style="color: var(--brand)">Green line: brand.</span>
-    </p>
-  </div>
+    <section class="panel">
+      <span id="hover">Hover over a bar to see its value.</span>
+      <svg id="chart" role="img" aria-label="Distribution of purchases per person"></svg>
+      <div class="legend">
+        <span><i class="sw sw-zero"></i>k = 0: buys nothing</span>
+        <span><i class="sw sw-bar"></i>k ≥ 1: buys k times</span>
+        <span id="brand-legend" class="hidden"><i class="sw sw-brand"></i>Brand penetration curve</span>
+      </div>
+    </section>
 
-  <div class="panel">
-    <div class="presets">
-      <button type="button" data-m="2.5" data-r="0.8">QSR</button>
-      <button type="button" data-m="1.2" data-r="1.0">Bread</button>
-      <button type="button" data-m="0.08" data-r="0.5">Automotive</button>
-    </div>
+    <section class="panel">
+      <div class="presets">
+        <button type="button" data-m="2.5" data-r="0.8">QSR</button>
+        <button type="button" data-m="1.2" data-r="1.0">Bread</button>
+        <button type="button" data-m="0.08" data-r="0.5">Automotive</button>
+      </div>
 
-    <label class="control">
-      <span class="control-head">Mean purchases per buyer (m) <output id="m-out"></output></span>
-      <input type="range" id="m" min="0.05" max="5" step="0.01">
-    </label>
-
-    <label class="control">
-      <span class="control-head">Shape (r, smaller = more skewed) <output id="r-out"></output></span>
-      <input type="range" id="r" min="0.15" max="3" step="0.01">
-    </label>
-
-    <label class="toggle">
-      <input type="checkbox" id="brand-on">
-      Show brand overlay
-    </label>
-
-    <div id="brand-controls" class="hidden">
       <label class="control">
-        <span class="control-head">Brand penetration <output id="pen-out"></output></span>
-        <input type="range" id="pen" min="0.05" max="0.95" step="0.01">
+        <span class="control-head">Average purchases per person (m) <output id="m-out"></output></span>
+        <input type="range" id="m" min="0.05" max="5" step="0.01">
       </label>
-    </div>
-  </div>
+      <details class="explain">
+        <summary>What is m?</summary>
+        <p>m is the average number of purchases per person in the period, counting everyone, including the people who buy nothing. Raising m moves the whole distribution to the right.</p>
+      </details>
 
-  <div class="panel">
-    <div class="readouts">
-      <div class="stat">
-        <div class="stat-label">P(0): no purchases</div>
-        <div class="stat-value accent" id="p0"></div>
+      <label class="control">
+        <span class="control-head">Shape (r) <output id="r-out"></output></span>
+        <input type="range" id="r" min="0.15" max="3" step="0.01">
+      </label>
+      <details class="explain">
+        <summary>What is r?</summary>
+        <p>r controls how unevenly purchases are spread. A small r means a few heavy buyers make most of the purchases, and the tail of the chart is long. A large r means purchases are more evenly spread, with fewer extreme buyers.</p>
+      </details>
+
+      <label class="toggle">
+        <input type="checkbox" id="brand-on">
+        Show brand overlay
+      </label>
+
+      <div id="brand-controls" class="hidden">
+        <label class="control">
+          <span class="control-head">Brand penetration <output id="pen-out"></output></span>
+          <input type="range" id="pen" min="0.05" max="0.95" step="0.01">
+        </label>
+        <details class="explain">
+          <summary>What is penetration?</summary>
+          <p>Penetration is the share of people who buy the brand at least once. The brand's P(0) is 1 − penetration. The people who do buy the brand keep the category's shape, scaled to fit the penetration, and the green line shows that.</p>
+        </details>
       </div>
-      <div class="stat">
-        <div class="stat-label">P(1): bought once</div>
-        <div class="stat-value" id="p1"></div>
+    </section>
+
+    <section class="panel">
+      <h2>In plain English</h2>
+      <div class="plain" id="plain"></div>
+      <div class="readouts">
+        <div class="stat">
+          <div class="stat-label">P(0): buy nothing</div>
+          <div class="stat-value accent" id="p0"></div>
+          <div class="stat-help">Share of people who make no purchases.</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">P(1): buy once</div>
+          <div class="stat-value" id="p1"></div>
+          <div class="stat-help">Share of people who buy exactly once.</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">P(5+): heavy buyers</div>
+          <div class="stat-value" id="p5"></div>
+          <div class="stat-help">Share of people who buy five or more times.</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Volume from 1-time buyers</div>
+          <div class="stat-value" id="vol"></div>
+          <div class="stat-help">Share of all purchases made by people who bought once: P(1) ÷ m.</div>
+        </div>
+        <div class="stat hidden" id="brand-stat">
+          <div class="stat-label">Brand P(0): never buy it</div>
+          <div class="stat-value brand" id="brand-p0"></div>
+          <div class="stat-help">1 − penetration.</div>
+        </div>
       </div>
-      <div class="stat">
-        <div class="stat-label">P(5+): heavy buyers</div>
-        <div class="stat-value" id="p5"></div>
-      </div>
-      <div class="stat">
-        <div class="stat-label">Volume from 1-time buyers</div>
-        <div class="stat-value" id="vol"></div>
-      </div>
-      <div class="stat hidden" id="brand-stat">
-        <div class="stat-label">Brand P(0): non-buyers</div>
-        <div class="stat-value brand" id="brand-p0"></div>
-      </div>
-    </div>
+    </section>
+
+    <section class="panel">
+      <h2>Learn how it works</h2>
+
+      <details class="learn">
+        <summary>The formula, in words</summary>
+        <div class="body">
+          <p>The chart shows the chance that a random person makes exactly k purchases, for k = 0, 1, 2, and so on.</p>
+          <div class="formula">P(X = k) = Γ(r + k) / (Γ(r) · k!) · (r / (r + m))^r · (m / (r + m))^k</div>
+          <p>Read it in three pieces:</p>
+          <p><b>Γ(r + k) / (Γ(r) · k!)</b> counts the ways the purchases can be spread out. Γ is the gamma function, a version of the factorial that also works for decimals. For whole numbers, Γ(n) = (n − 1)!.</p>
+          <p><b>(r / (r + m))^r</b> is the chance of zero purchases, P(0).</p>
+          <p><b>(m / (r + m))^k</b> adjusts for each purchase beyond zero. Larger m makes higher k more likely.</p>
+        </div>
+      </details>
+
+      <details class="learn">
+        <summary>The math, with your current numbers</summary>
+        <div class="body" id="worked"></div>
+      </details>
+
+      <details class="learn">
+        <summary>Glossary</summary>
+        <div class="body">
+          <dl class="glossary">
+            <dt>Mean (m)</dt><dd>Average purchases per person, including people with zero purchases.</dd>
+            <dt>Shape (r)</dt><dd>How uneven purchases are. Smaller r means a longer tail of heavy buyers.</dd>
+            <dt>k</dt><dd>The number of purchases a person makes in the period.</dd>
+            <dt>P(k)</dt><dd>The share of people who make exactly k purchases.</dd>
+            <dt>Cumulative probability</dt><dd>The share of people who make k or fewer purchases. It climbs from P(0) toward 100%.</dd>
+            <dt>Truncation (K)</dt><dd>The chart stops at the first k where the cumulative probability reaches 99.95%. Beyond that, the remaining share is too small to matter.</dd>
+            <dt>Penetration</dt><dd>The share of people who buy a given brand at least once.</dd>
+          </dl>
+        </div>
+      </details>
+    </section>
   </div>
 
   <script>
@@ -173,8 +319,7 @@
         p0: probs[0],
         p1: probs[1],
         pGe5: tailFrom(probs, 5),
-        // E[X] = m. Buyers with 0 purchases contribute nothing, buyers with
-        // 1 contribute P(1). Share of purchase volume from 1-time buyers = P(1) / m.
+        // E[X] = m. Share of purchase volume from 1-time buyers = P(1) / m.
         lightVolumeShare: probs[1] / m,
       };
     }
@@ -217,7 +362,7 @@
 
       const rects = bars.map((b) => {
         const cls = b.k === 0 ? 'bar bar-zero' : 'bar';
-        return `<rect class="${cls}" x="${b.x}" y="${b.y}" width="${b.width}" height="${b.height}"><title>k=${b.k}: ${(probs[b.k] * 100).toFixed(2)}%</title></rect>`;
+        return `<rect class="${cls}" data-k="${b.k}" x="${b.x}" y="${b.y}" width="${b.width}" height="${b.height}"/>`;
       });
 
       const labels = bars
@@ -237,9 +382,61 @@
       svgEl.innerHTML = rects.join('') + brand + labels.join('');
     }
 
-    // ---------- Controls ----------
+    // ---------- Text helpers ----------
     const $ = (id) => document.getElementById(id);
     const pct = (x) => (x * 100).toFixed(1) + '%';
+    const pct2 = (x) => (x * 100).toFixed(2) + '%';
+
+    function timesPhrase(k) {
+      if (k === 0) return 'buys nothing';
+      if (k === 1) return 'buys once';
+      return `buys ${k} times`;
+    }
+
+    function plainEnglish(m, r, s, brandOn, pen) {
+      const K = s.probs.length - 1;
+      const shape = r <= 0.5
+        ? 'Purchases are very uneven: a small group of heavy buyers makes most of them.'
+        : r < 1.5
+          ? 'Purchases are moderately uneven.'
+          : 'Purchases are spread more evenly across people.';
+      let out = `On average each person makes <b>${m.toFixed(2)}</b> purchases in the period, counting people who buy nothing. ` +
+        `${pct(s.p0)} buy nothing, ${pct(s.p1)} buy exactly once, and ${pct(s.pGe5)} buy five or more times. ` +
+        `${shape} Buyers who bought once account for ${pct(s.lightVolumeShare)} of all purchases.`;
+      if (brandOn) {
+        out += ` The brand reaches ${pct(pen)} of people, so ${pct(1 - pen)} never buy it.`;
+      }
+      out += ` The chart shows k = 0 to ${K}, which covers 99.95% of people.`;
+      return out;
+    }
+
+    // Worked example for the current m and r.
+    function renderWorked(m, r, s) {
+      const ratio = m / (r + m);
+      const K = s.probs.length - 1;
+      const rows = [];
+      let cum = 0;
+      const shown = Math.min(6, s.probs.length);
+      for (let k = 0; k < shown; k++) {
+        cum += s.probs[k];
+        const factor = ((r + k) / (k + 1)) * ratio;
+        rows.push(`<tr><td>${k}</td><td>${pct2(s.probs[k])}</td><td>× ${factor.toFixed(3)}</td><td>${pct2(cum)}</td></tr>`);
+      }
+      const more = K + 1 > shown ? `<tr><td colspan="4">… continues to k = ${K}</td></tr>` : '';
+      const total = s.probs.reduce((a, b) => a + b, 0);
+      return `
+        <p><b>Step 1.</b> P(0) = (r / (r + m))^r = (${r.toFixed(2)} / ${(r + m).toFixed(2)})^${r.toFixed(2)} = ${s.probs[0].toFixed(4)}</p>
+        <p><b>Step 2.</b> Each next value is the previous one times (r + k)/(k + 1) × m/(r + m). Here m/(r + m) = ${ratio.toFixed(4)}.</p>
+        <table class="steps">
+          <tr><th>k</th><th>P(k)</th><th>× to get to k+1</th><th>Running total</th></tr>
+          ${rows.join('')}${more}
+        </table>
+        <p><b>Step 3.</b> Stop at K = ${K}, where the running total reaches ${pct2(total)}. That is past the 99.95% cutoff, so the tail beyond K is too small to show.</p>
+      `;
+    }
+
+    // ---------- Controls ----------
+    let currentProbs = [];
 
     function update() {
       const m = Number($('m').value);
@@ -248,6 +445,7 @@
       const brandOn = $('brand-on').checked;
 
       const s = nbStats(m, r);
+      currentProbs = s.probs;
       const brandProbs = brandOn ? brandPmf(s.probs, pen) : null;
       renderChart($('chart'), s.probs, brandProbs);
 
@@ -260,11 +458,30 @@
       $('p5').textContent = pct(s.pGe5);
       $('vol').textContent = pct(s.lightVolumeShare);
 
+      $('plain').innerHTML = plainEnglish(m, r, s, brandOn, pen);
+      $('worked').innerHTML = renderWorked(m, r, s);
+
+      document.querySelectorAll('button[data-m]').forEach((btn) => {
+        btn.classList.toggle('active', Number(btn.dataset.m) === m && Number(btn.dataset.r) === r);
+      });
+
       $('brand-controls').classList.toggle('hidden', !brandOn);
       $('brand-legend').classList.toggle('hidden', !brandOn);
       $('brand-stat').classList.toggle('hidden', !brandOn);
       if (brandOn) $('brand-p0').textContent = pct(1 - pen);
     }
+
+    // Hover: describe the bar under the pointer.
+    const defaultHover = 'Hover over a bar to see its value.';
+    $('chart').addEventListener('pointermove', (e) => {
+      const bar = e.target.closest('rect.bar, rect.bar-zero');
+      if (!bar) return;
+      const k = Number(bar.dataset.k);
+      $('hover').innerHTML = `k = ${k}: <b>${pct2(currentProbs[k])}</b> of people ${timesPhrase(k)}.`;
+    });
+    $('chart').addEventListener('pointerleave', () => {
+      $('hover').textContent = defaultHover;
+    });
 
     document.querySelectorAll('button[data-m]').forEach((btn) => {
       btn.addEventListener('click', () => {
