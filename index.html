@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>The Banana Chart</title>
+  <style>
+    :root {
+      --bg: #121317;
+      --panel: #1b1d24;
+      --text: #e9e9ec;
+      --muted: #9a9ca6;
+      --banana: #ffe135;   /* accent */
+      --bar: #4a5263;      /* ordinary bars */
+      --brand: #5cd65c;    /* brand overlay */
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 16px;
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, sans-serif;
+    }
+    h1 { color: var(--banana); margin: 0 0 16px; font-size: 1.6rem; }
+    .panel {
+      background: var(--panel);
+      border-radius: 10px;
+      padding: 16px;
+      max-width: 720px;
+      margin-bottom: 16px;
+    }
+    svg { width: 100%; height: auto; display: block; }
+    .bar { fill: var(--bar); }
+    .bar-zero { fill: var(--banana); }
+    .axis-label { fill: var(--muted); font-size: 12px; text-anchor: middle; }
+    .brand-line { fill: none; stroke: var(--brand); stroke-width: 2.5; stroke-linejoin: round; }
+    .brand-dot { fill: var(--brand); }
+
+    .control { display: block; margin-bottom: 14px; }
+    .control-head { display: flex; justify-content: space-between; color: var(--muted); font-size: 0.9rem; margin-bottom: 4px; }
+    .control-head output { color: var(--text); font-variant-numeric: tabular-nums; }
+    input[type="range"] { width: 100%; accent-color: var(--banana); }
+    .presets { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+    button {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid #3a3e4a;
+      border-radius: 6px;
+      padding: 6px 12px;
+      cursor: pointer;
+      font: inherit;
+    }
+    button:hover { border-color: var(--banana); color: var(--banana); }
+    .toggle { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; cursor: pointer; }
+    .toggle input { accent-color: var(--brand); width: 18px; height: 18px; }
+    .hidden { display: none; }
+
+    .readouts { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+    .stat { background: var(--bg); border-radius: 8px; padding: 12px; }
+    .stat-label { color: var(--muted); font-size: 0.8rem; margin-bottom: 4px; }
+    .stat-value { font-size: 1.4rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+    .stat-value.accent { color: var(--banana); }
+    .stat-value.brand { color: var(--brand); }
+    .note { color: var(--muted); font-size: 0.85rem; margin: 12px 0 0; }
+  </style>
+</head>
+<body>
+  <h1>The Banana Chart</h1>
+
+  <div class="panel">
+    <svg id="chart" role="img" aria-label="Distribution of purchases per buyer"></svg>
+    <p class="note">
+      Bars: share of buyers making k purchases (k = 0 in yellow).
+      <span id="brand-legend" class="hidden" style="color: var(--brand)">Green line: brand.</span>
+    </p>
+  </div>
+
+  <div class="panel">
+    <div class="presets">
+      <button type="button" data-m="2.5" data-r="0.8">QSR</button>
+      <button type="button" data-m="1.2" data-r="1.0">Bread</button>
+      <button type="button" data-m="0.08" data-r="0.5">Automotive</button>
+    </div>
+
+    <label class="control">
+      <span class="control-head">Mean purchases per buyer (m) <output id="m-out"></output></span>
+      <input type="range" id="m" min="0.05" max="5" step="0.01">
+    </label>
+
+    <label class="control">
+      <span class="control-head">Shape (r, smaller = more skewed) <output id="r-out"></output></span>
+      <input type="range" id="r" min="0.15" max="3" step="0.01">
+    </label>
+
+    <label class="toggle">
+      <input type="checkbox" id="brand-on">
+      Show brand overlay
+    </label>
+
+    <div id="brand-controls" class="hidden">
+      <label class="control">
+        <span class="control-head">Brand penetration <output id="pen-out"></output></span>
+        <input type="range" id="pen" min="0.05" max="0.95" step="0.01">
+      </label>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="readouts">
+      <div class="stat">
+        <div class="stat-label">P(0): no purchases</div>
+        <div class="stat-value accent" id="p0"></div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">P(1): bought once</div>
+        <div class="stat-value" id="p1"></div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">P(5+): heavy buyers</div>
+        <div class="stat-value" id="p5"></div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Volume from 1-time buyers</div>
+        <div class="stat-value" id="vol"></div>
+      </div>
+      <div class="stat hidden" id="brand-stat">
+        <div class="stat-label">Brand P(0): non-buyers</div>
+        <div class="stat-value brand" id="brand-p0"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ---------- Math ----------
+    // Negative binomial with mean m and shape r.
+
+    const CUM_TARGET = 0.9995; // stop once this much probability mass is covered
+    const MAX_K = 20000;       // safety cap so odd inputs can't loop forever
+
+    // P(X = 0) = (r / (r + m))^r
+    function nbP0(m, r) {
+      return Math.pow(r / (r + m), r);
+    }
+
+    // P(X = k) for k = 0..K, stopping when cumulative mass reaches CUM_TARGET.
+    // P(k+1) = P(k) * (r + k) / (k + 1) * m / (r + m)
+    function nbPmf(m, r) {
+      const ratio = m / (r + m);
+      const probs = [nbP0(m, r)];
+      let cum = probs[0];
+      while (cum < CUM_TARGET && probs.length < MAX_K) {
+        const k = probs.length - 1;
+        const next = probs[k] * ((r + k) / (k + 1)) * ratio;
+        probs.push(next);
+        cum += next;
+      }
+      return probs;
+    }
+
+    // Sum of probs[n], probs[n+1], ... Adding small terms avoids the
+    // precision loss of 1 - (sum of the head).
+    function tailFrom(probs, n) {
+      let s = 0;
+      for (let k = n; k < probs.length; k++) s += probs[k];
+      return s;
+    }
+
+    function nbStats(m, r) {
+      const probs = nbPmf(m, r);
+      return {
+        probs,
+        p0: probs[0],
+        p1: probs[1],
+        pGe5: tailFrom(probs, 5),
+        // E[X] = m. Buyers with 0 purchases contribute nothing, buyers with
+        // 1 contribute P(1). Share of purchase volume from 1-time buyers = P(1) / m.
+        lightVolumeShare: probs[1] / m,
+      };
+    }
+
+    // Brand overlay: brand P(0) = 1 - pen; the k >= 1 buyers keep the
+    // market's shape, scaled so they sum to pen.
+    function brandPmf(probs, pen) {
+      const tail = tailFrom(probs, 1);
+      const brand = [1 - pen];
+      for (let k = 1; k < probs.length; k++) {
+        brand.push(pen * probs[k] / tail);
+      }
+      return brand;
+    }
+
+    // ---------- Geometry ----------
+    // Probability -> bar rectangle. The y-axis is fixed at 0..1 so bars stay
+    // comparable as sliders move.
+    function barLayout(probs, width, height) {
+      const n = probs.length;
+      const slot = width / n;
+      const barWidth = slot * 0.8;
+      const gap = (slot - barWidth) / 2;
+      return probs.map((p, k) => {
+        const h = p * height;
+        return { k, x: k * slot + gap, y: height - h, width: barWidth, height: h };
+      });
+    }
+
+    // ---------- Drawing ----------
+    const CHART_W = 640;
+    const CHART_H = 240; // bar area height
+    const LABEL_H = 24;  // room for k labels under the bars
+
+    function renderChart(svgEl, probs, brandProbs) {
+      svgEl.setAttribute('viewBox', `0 0 ${CHART_W} ${CHART_H + LABEL_H}`);
+
+      const bars = barLayout(probs, CHART_W, CHART_H);
+      const labelStep = Math.ceil(probs.length / 16);
+
+      const rects = bars.map((b) => {
+        const cls = b.k === 0 ? 'bar bar-zero' : 'bar';
+        return `<rect class="${cls}" x="${b.x}" y="${b.y}" width="${b.width}" height="${b.height}"><title>k=${b.k}: ${(probs[b.k] * 100).toFixed(2)}%</title></rect>`;
+      });
+
+      const labels = bars
+        .filter((b) => b.k % labelStep === 0)
+        .map((b) => `<text class="axis-label" x="${b.x + b.width / 2}" y="${CHART_H + 16}">${b.k}</text>`);
+
+      // Brand line: one point per k, at the bar centers, using brand heights.
+      let brand = '';
+      if (brandProbs) {
+        const pts = barLayout(brandProbs, CHART_W, CHART_H)
+          .map((b) => ({ x: b.x + b.width / 2, y: b.y }));
+        const line = pts.map((p) => `${p.x},${p.y}`).join(' ');
+        const dots = pts.map((p) => `<circle class="brand-dot" cx="${p.x}" cy="${p.y}" r="2.5"/>`).join('');
+        brand = `<polyline class="brand-line" points="${line}"/>${dots}`;
+      }
+
+      svgEl.innerHTML = rects.join('') + brand + labels.join('');
+    }
+
+    // ---------- Controls ----------
+    const $ = (id) => document.getElementById(id);
+    const pct = (x) => (x * 100).toFixed(1) + '%';
+
+    function update() {
+      const m = Number($('m').value);
+      const r = Number($('r').value);
+      const pen = Number($('pen').value);
+      const brandOn = $('brand-on').checked;
+
+      const s = nbStats(m, r);
+      const brandProbs = brandOn ? brandPmf(s.probs, pen) : null;
+      renderChart($('chart'), s.probs, brandProbs);
+
+      $('m-out').textContent = m.toFixed(2);
+      $('r-out').textContent = r.toFixed(2);
+      $('pen-out').textContent = pct(pen);
+
+      $('p0').textContent = pct(s.p0);
+      $('p1').textContent = pct(s.p1);
+      $('p5').textContent = pct(s.pGe5);
+      $('vol').textContent = pct(s.lightVolumeShare);
+
+      $('brand-controls').classList.toggle('hidden', !brandOn);
+      $('brand-legend').classList.toggle('hidden', !brandOn);
+      $('brand-stat').classList.toggle('hidden', !brandOn);
+      if (brandOn) $('brand-p0').textContent = pct(1 - pen);
+    }
+
+    document.querySelectorAll('button[data-m]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        $('m').value = btn.dataset.m;
+        $('r').value = btn.dataset.r;
+        update();
+      });
+    });
+
+    ['m', 'r', 'pen', 'brand-on'].forEach((id) => {
+      $(id).addEventListener('input', update);
+      $(id).addEventListener('change', update);
+    });
+
+    // Start on the QSR preset.
+    $('m').value = 2.5;
+    $('r').value = 0.8;
+    $('pen').value = 0.3;
+    update();
+  </script>
+</body>
+</html>
