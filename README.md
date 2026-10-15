@@ -4,7 +4,7 @@ A single-page, dependency-free visualization of the negative binomial distributi
 
 Open `index.html` in any browser. No build step.
 
-- **m** (mean purchases per buyer) and **r** (shape; smaller means more skewed) set the distribution.
+- **m** (mean purchases per person) and **r** (shape; smaller means more skewed) set the distribution.
 - **Presets**: QSR, Bread, Automotive.
 - **Readouts**: P(0), P(1), P(5+), and the share of purchase volume from buyers who bought once.
 - **Brand overlay**: a green line showing a brand with a given penetration. Brand P(0) = 1 − penetration, and the remaining buyers keep the market's shape.
