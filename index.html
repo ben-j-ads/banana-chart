@@ -5,41 +5,45 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>The Banana Chart</title>
   <style>
+    @font-face { font-family: "Bricolage Grotesque Condensed"; src: url("fonts/BricolageGrotesque-ExtraBoldCondensed.ttf") format("truetype"); font-weight: 800; font-style: normal; font-display: swap; }
+    @font-face { font-family: "Archivo"; src: url("fonts/Archivo-Medium.ttf") format("truetype"); font-weight: 500; font-style: normal; font-display: swap; }
+    @font-face { font-family: "Archivo"; src: url("fonts/Archivo-Bold.ttf") format("truetype"); font-weight: 700; font-style: normal; font-display: swap; }
     :root {
-      --bg: #121317;
-      --panel: #1b1d24;
-      --panel-2: #14161c;
-      --line: #2a2e39;
-      --text: #e9e9ec;
-      --muted: #9a9ca6;
-      --banana: #ffe135;
-      --banana-soft: rgba(255, 225, 53, 0.15);
-      --bar: #4a5263;
-      --bar-hover: #6b7488;
-      --brand: #5cd65c;
+      --paper: #eef0e4; --paper-raised: #f7f8f1; --ink: #272818; --ink-muted: #5c5e48;
+      --rule: #c9cdb5; --lime: #dcf04a; --on-lime: #272818; --moss: #56620a;
+      --bg: var(--paper); --panel: var(--paper-raised); --panel-2: var(--paper);
+      --line: var(--rule); --text: var(--ink); --muted: var(--ink-muted); --banana: var(--lime);
+      --font-display: "Bricolage Grotesque Condensed", "Arial Narrow", "Helvetica Neue", sans-serif;
+      --font-text: Archivo, "Helvetica Neue", Arial, sans-serif;
+      --bar: var(--ink-muted); --bar-hover: var(--ink); --brand: var(--ink);
     }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --paper: #17180d; --paper-raised: #212216; --ink: #eef0e4; --ink-muted: #a6a98f;
+        --rule: #3d3f2e; --moss: #b9cc3a;
+        
+      }
+    }
+
     * { box-sizing: border-box; }
     body {
       margin: 0;
       padding: 20px 16px 48px;
-      background:
-        radial-gradient(1200px 500px at 50% -200px, rgba(255, 225, 53, 0.08), transparent),
-        var(--bg);
+      background: var(--bg);
       color: var(--text);
       font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
       line-height: 1.5;
     }
     .wrap { max-width: 760px; margin: 0 auto; }
-    h1 { color: var(--banana); margin: 0; font-size: 2rem; letter-spacing: -0.02em; }
+    h1 { color: var(--moss); margin: 0; font-size: 2rem; letter-spacing: -0.02em; }
     h2 { font-size: 1.1rem; margin: 0 0 12px; }
     .subtitle { color: var(--muted); margin: 4px 0 20px; }
     .panel {
       background: var(--panel);
       border: 1px solid var(--line);
-      border-radius: 14px;
+      border-radius: 0;
       padding: 18px;
       margin-bottom: 16px;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
     }
     .hidden { display: none !important; }
 
@@ -51,20 +55,20 @@
       font-size: 0.95rem;
       margin-bottom: 8px;
     }
-    #hover b { color: var(--banana); font-weight: 600; }
+    #hover b { color: var(--moss); font-weight: 600; }
     svg { width: 100%; height: auto; display: block; touch-action: none; }
     .bar {
       fill: var(--bar);
       transition: y 0.35s ease, height 0.35s ease, fill 0.15s ease;
     }
     .bar:hover { fill: var(--bar-hover); }
-    .bar-zero { fill: var(--banana); filter: drop-shadow(0 0 8px rgba(255, 225, 53, 0.35)); }
+    .bar-zero { fill: var(--banana); }
     .bar-zero:hover { fill: #fff07a; }
     .axis-label { fill: var(--muted); font-size: 12px; text-anchor: middle; }
     .brand-line { fill: none; stroke: var(--brand); stroke-width: 2.5; stroke-linejoin: round; transition: all 0.35s ease; }
     .brand-dot { fill: var(--brand); }
     .legend { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 10px; color: var(--muted); font-size: 0.85rem; }
-    .sw { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+    .sw { display: inline-block; width: 10px; height: 10px; border-radius: 0; margin-right: 6px; vertical-align: -1px; }
     .sw-zero { background: var(--banana); }
     .sw-bar { background: var(--bar); }
     .sw-brand { background: var(--brand); }
@@ -74,48 +78,48 @@
     button {
       background: transparent;
       color: var(--text);
-      border: 1px solid #3a3e4a;
-      border-radius: 999px;
+      border: 1px solid var(--ink-muted);
+      border-radius: 0;
       padding: 7px 14px;
       cursor: pointer;
       font: inherit;
       font-size: 0.92rem;
       transition: all 0.15s ease;
     }
-    button:hover { border-color: var(--banana); color: var(--banana); }
-    button.active { background: var(--banana); border-color: var(--banana); color: #111; font-weight: 600; }
+    button:hover { border-color: var(--moss); color: var(--moss); }
+    button.active { background: var(--banana); border-color: var(--moss); color: var(--on-lime); font-weight: 600; }
     button:focus-visible, input:focus-visible, summary:focus-visible { outline: 2px solid var(--banana); outline-offset: 2px; }
 
     /* Controls */
     .control { display: block; margin-bottom: 16px; }
     .control-head { display: flex; justify-content: space-between; align-items: baseline; color: var(--muted); font-size: 0.92rem; margin-bottom: 6px; }
     .control-head output { color: var(--text); font-weight: 600; font-variant-numeric: tabular-nums; font-size: 1rem; }
-    input[type="range"] { width: 100%; accent-color: var(--banana); margin: 0; }
+    input[type="range"] { width: 100%; accent-color: var(--moss); margin: 0; }
     .toggle { display: flex; align-items: center; gap: 10px; margin: 4px 0 14px; cursor: pointer; }
     .toggle input { accent-color: var(--brand); width: 18px; height: 18px; }
 
     details.explain { margin: -6px 0 16px; color: var(--muted); font-size: 0.88rem; }
-    details.explain summary { cursor: pointer; color: var(--banana); list-style: none; display: inline-block; }
+    details.explain summary { cursor: pointer; color: var(--moss); list-style: none; display: inline-block; }
     details.explain summary::-webkit-details-marker { display: none; }
     details.explain summary::before { content: "ⓘ "; }
-    details.explain p { margin: 6px 0 0; padding: 10px 12px; background: var(--panel-2); border-radius: 8px; }
+    details.explain p { margin: 6px 0 0; padding: 10px 12px; background: var(--panel-2); border-radius: 0; }
 
     .plain {
       background: var(--panel-2);
       border-left: 3px solid var(--banana);
-      border-radius: 8px;
+      border-radius: 0;
       padding: 12px 14px;
       font-size: 0.97rem;
       margin-bottom: 18px;
     }
-    .plain b { color: var(--banana); font-weight: 600; }
+    .plain b { color: var(--moss); font-weight: 600; }
 
     /* Readouts */
     .readouts { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
-    .stat { background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; padding: 14px; }
+    .stat { background: var(--panel-2); border: 1px solid var(--line); border-radius: 0; padding: 14px; }
     .stat-label { color: var(--muted); font-size: 0.82rem; }
     .stat-value { font-size: 1.7rem; font-weight: 700; font-variant-numeric: tabular-nums; margin: 2px 0 4px; }
-    .stat-value.accent { color: var(--banana); }
+    .stat-value.accent { color: var(--moss); }
     .stat-value.brand { color: var(--brand); }
     .stat-help { color: var(--muted); font-size: 0.78rem; line-height: 1.4; }
 
@@ -123,13 +127,13 @@
     details.learn { border-top: 1px solid var(--line); padding: 12px 0; }
     details.learn:first-of-type { border-top: 0; padding-top: 0; }
     details.learn summary { cursor: pointer; font-weight: 600; color: var(--text); }
-    details.learn summary:hover { color: var(--banana); }
+    details.learn summary:hover { color: var(--moss); }
     details.learn .body { color: var(--muted); font-size: 0.95rem; margin-top: 10px; }
     details.learn .body p { margin: 0 0 10px; }
     .formula {
       background: var(--panel-2);
       border: 1px solid var(--line);
-      border-radius: 8px;
+      border-radius: 0;
       padding: 14px;
       color: var(--text);
       font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
@@ -141,7 +145,7 @@
     table.steps th, table.steps td { text-align: right; padding: 6px 8px; border-bottom: 1px solid var(--line); }
     table.steps th { color: var(--muted); font-weight: 500; }
     table.steps td:first-child, table.steps th:first-child { text-align: left; }
-    .glossary dt { color: var(--banana); font-weight: 600; margin-top: 8px; }
+    .glossary dt { color: var(--moss); font-weight: 600; margin-top: 8px; }
     .glossary dd { margin: 2px 0 0 0; }
 
     @media (max-width: 480px) {
@@ -149,11 +153,53 @@
       .panel { padding: 14px; }
       .stat-value { font-size: 1.4rem; }
     }
+  
+    /* ben.j.ads brand layer: paper ground, ink text, lime as a mark, square corners, no shadows */
+    body { background: var(--bg); font-family: var(--font-text); font-weight: 500; }
+    h1, h2, .stat-value, .seg-amount { font-family: var(--font-display); font-weight: 800; }
+    h1 { color: var(--ink); font-size: 3rem; line-height: 1; letter-spacing: -0.01em; text-transform: lowercase; margin-top: 18px; }
+    h1 mark { background: linear-gradient(transparent 28%, var(--lime) 28%, var(--lime) 92%, transparent 92%); color: var(--on-lime); padding: 0 4px; margin: 0 -4px; }
+    h2 { font-size: 1.5rem; letter-spacing: 0; }
+    b, dt, summary, button { font-family: var(--font-text); }
+    b { font-weight: 700; }
+    .stat-value { font-size: 2.1rem; line-height: 1.05; }
+    .brandbar { display: block; width: 120px; height: auto; }
+    .brandbar img { display: block; width: 100%; height: auto; }
+    a { color: var(--moss); text-decoration: underline; }
+    a:hover { background: var(--lime); color: var(--on-lime); }
+    button:hover { background: var(--lime); border-color: var(--ink); color: var(--on-lime); }
+    button.active { background: var(--lime); border: 1.5px solid var(--ink); color: var(--on-lime); font-weight: 700; }
+    select:hover, input[type="text"]:hover { border-color: var(--ink); }
+    :focus-visible { outline: 2px solid var(--ink) !important; outline-offset: 2px; }
+    details.explain summary:hover, details.learn summary:hover { background: var(--lime); color: var(--on-lime); }
+    details.explain summary::before { content: "\2192  "; }
+    .plain { border-left: 4px solid var(--ink); background: var(--panel); }
+    .plain b { color: var(--ink); }
+    .plain b:first-of-type { background: linear-gradient(transparent 40%, var(--lime) 40%); color: var(--on-lime); padding: 0 2px; }
+    .stat-value.accent { color: var(--ink); }
+    .sw { border: 1.5px solid var(--ink); }
+    .site-foot { margin-top: 32px; padding-top: 16px; border-top: 1px solid var(--rule); color: var(--ink-muted); font-size: 0.82rem; }
+    .site-foot img { display: block; width: 150px; height: auto; margin-bottom: 8px; }
+    .site-foot p { margin: 0; }
+    .site-foot .tag { display: inline-block; background: var(--lime); color: var(--on-lime); font-weight: 700; font-size: 0.7rem; padding: 0 5px; margin-right: 6px; border: 1.5px solid var(--ink); }
+    @media (max-width: 480px) { h1 { font-size: 2.4rem; } .stat-value { font-size: 1.8rem; } }
+
+    .bar { fill: var(--bar); } .bar:hover { fill: var(--bar-hover); }
+    .bar-zero { fill: var(--lime); stroke: var(--ink); stroke-width: 1.5; }
+    .bar-zero:hover { fill: var(--lime); stroke-width: 3; }
+    .brand-line { stroke: var(--ink); stroke-width: 3; }
+    .brand-dot { fill: var(--lime); stroke: var(--ink); stroke-width: 1.5; }
+    .sw-brand { background: var(--ink); }
+    .stat-value.brand { color: var(--ink); }
+    .toggle input { accent-color: var(--ink); }
   </style>
 </head>
 <body>
   <div class="wrap">
-    <h1>The Banana Chart</h1>
+    <a class="brandbar" href="https://github.com/ben-j-ads" aria-label="ben.j.ads">
+      <picture><source media="(prefers-color-scheme: dark)" srcset="logo/benjads-base-paper-transparent.svg"><img src="logo/benjads-base-olive-transparent.svg" alt="ben.j.ads"></picture>
+    </a>
+    <h1>the <mark>banana</mark> chart</h1>
     <p class="subtitle">How often do people buy a category? A negative binomial model of purchase frequency.</p>
 
     <section class="panel">
@@ -275,6 +321,10 @@
         </div>
       </details>
     </section>
+    <footer class="site-foot">
+      <picture><source media="(prefers-color-scheme: dark)" srcset="logo/benjads-footnote-paper-transparent.svg"><img src="logo/benjads-footnote-olive-transparent.svg" alt="ben.j.ads"></picture>
+      <p><span class="tag">1</span>Negative binomial model of purchase frequency. Marketing science, given away free, for people who spend money.</p>
+    </footer>
   </div>
 
   <script>
